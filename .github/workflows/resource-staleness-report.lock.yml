@@ -323,14 +323,18 @@ jobs:
             core.setOutput('model', awInfo.model);
       - name: Validate COPILOT_GITHUB_TOKEN secret
         id: validate-secret
+        continue-on-error: true
         run: /opt/gh-aw/actions/validate_multi_secret.sh COPILOT_GITHUB_TOKEN 'GitHub Copilot CLI' https://github.github.com/gh-aw/reference/engines/#github-copilot-default
         env:
           COPILOT_GITHUB_TOKEN: ${{ secrets.COPILOT_GITHUB_TOKEN }}
       - name: Install GitHub Copilot CLI
+        if: steps.validate-secret.outcome == 'success'
         run: /opt/gh-aw/actions/install_copilot_cli.sh 0.0.410
       - name: Install awf binary
+        if: steps.validate-secret.outcome == 'success'
         run: bash /opt/gh-aw/actions/install_awf_binary.sh v0.20.0
       - name: Determine automatic lockdown mode for GitHub MCP Server
+        if: steps.validate-secret.outcome == 'success'
         id: determine-automatic-lockdown
         uses: actions/github-script@ed597411d8f924073f98dfc5c65a23a2325f34cd # v8
         env:
@@ -341,8 +345,10 @@ jobs:
             const determineAutomaticLockdown = require('/opt/gh-aw/actions/determine_automatic_lockdown.cjs');
             await determineAutomaticLockdown(github, context, core);
       - name: Download container images
+        if: steps.validate-secret.outcome == 'success'
         run: bash /opt/gh-aw/actions/download_docker_images.sh ghcr.io/github/gh-aw-firewall/agent:0.20.0 ghcr.io/github/gh-aw-firewall/api-proxy:0.20.0 ghcr.io/github/gh-aw-firewall/squid:0.20.0 ghcr.io/github/gh-aw-mcpg:v0.1.4 ghcr.io/github/github-mcp-server:v0.30.3 node:lts-alpine
       - name: Write Safe Outputs Config
+        if: steps.validate-secret.outcome == 'success'
         run: |
           mkdir -p /opt/gh-aw/safeoutputs
           mkdir -p /tmp/gh-aw/safeoutputs
@@ -534,6 +540,7 @@ jobs:
           }
           GH_AW_SAFE_OUTPUTS_VALIDATION_EOF
       - name: Generate Safe Outputs MCP Server Config
+        if: steps.validate-secret.outcome == 'success'
         id: safe-outputs-config
         run: |
           # Generate a secure random API key (360 bits of entropy, 40+ chars)
@@ -552,6 +559,7 @@ jobs:
           echo "Safe Outputs MCP server will run on port ${PORT}"
           
       - name: Start Safe Outputs MCP HTTP Server
+        if: steps.validate-secret.outcome == 'success'
         id: safe-outputs-start
         env:
           DEBUG: '*'
@@ -572,6 +580,7 @@ jobs:
           bash /opt/gh-aw/actions/start_safe_outputs_server.sh
           
       - name: Start MCP Gateway
+        if: steps.validate-secret.outcome == 'success'
         id: start-mcp-gateway
         env:
           GH_AW_SAFE_OUTPUTS: ${{ env.GH_AW_SAFE_OUTPUTS }}
@@ -627,19 +636,23 @@ jobs:
           }
           GH_AW_MCP_CONFIG_EOF
       - name: Generate workflow overview
+        if: steps.validate-secret.outcome == 'success'
         uses: actions/github-script@ed597411d8f924073f98dfc5c65a23a2325f34cd # v8
         with:
           script: |
             const { generateWorkflowOverview } = require('/opt/gh-aw/actions/generate_workflow_overview.cjs');
             await generateWorkflowOverview(core);
       - name: Download prompt artifact
+        if: steps.validate-secret.outcome == 'success'
         uses: actions/download-artifact@018cc2cf5baa6db3ef3c5f8a56943fffe632ef53 # v6
         with:
           name: prompt
           path: /tmp/gh-aw/aw-prompts
       - name: Clean git credentials
+        if: steps.validate-secret.outcome == 'success'
         run: bash /opt/gh-aw/actions/clean_git_credentials.sh
       - name: Execute GitHub Copilot CLI
+        if: steps.validate-secret.outcome == 'success'
         id: agentic_execution
         # Copilot CLI tool arguments (sorted):
         timeout-minutes: 20
@@ -660,6 +673,7 @@ jobs:
           GITHUB_WORKSPACE: ${{ github.workspace }}
           XDG_CONFIG_HOME: /home/runner
       - name: Configure Git credentials
+        if: steps.validate-secret.outcome == 'success'
         env:
           REPO_NAME: ${{ github.repository }}
           SERVER_URL: ${{ github.server_url }}

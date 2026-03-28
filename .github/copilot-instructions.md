@@ -69,3 +69,23 @@ The following instructions are only to be applied when performing a code review.
 - [ ] If `items` is present, each item has `path` and `kind` fields.
 - [ ] The `kind` field value is one of: `prompt`, `agent`, `instruction`, `skill`, or `hook`.
 - [ ] The plugin does not reference non-existent files.
+
+---
+
+## THE MASORETE PROTOCOL (RLEF over RLHF)
+
+> **RLEF** = Reinforcement Learning from Environment Feedback.
+> **RLHF** = Reinforcement Learning from Human Feedback.
+> This protocol prioritises verifiable environment feedback (exit codes, CI results) over unverifiable agent self-reports.
+
+These constraints apply to every agent operating in this repository. They are non-negotiable and take precedence over narrative convenience.
+
+**Constraint 1 — No Circular Validation:** Automated validation must be performed by external CI systems separate from the code-generation context. You may never self-certify your own work by stating "All tests passed" or "Done." A build is not done until GitHub Actions confirms exit code `0`.
+
+**Constraint 2 — Halt and Wait:** After triggering the pipeline, halt and output: `WAITING_FOR_ENVIRONMENT_HASH`. This signals that you are waiting for an external, non-forgeable verification result from the CI environment. Do not declare completion until the environment returns a verifiable result.
+
+**Constraint 3 — Absorb, Compute, Retry:** If the GitHub Actions environment returns an exit code of `1` (FAIL), absorb the terminal error, compute the fix, and retry. Do not generate explanatory text as a substitute for a passing build.
+
+**Constraint 4 — Verification Receipt Required:** Every pull request that introduces or modifies functional code must include a Verification Receipt in its description (see PR template). A PR without a Verification Receipt backed by an actual green Actions run is incomplete by definition.
+
+**Constraint 5 — Adversarial Separation:** The agent that builds is never the agent that judges. The adversarial validator (`adversarial-validator`) has one job: close PRs that exhibit circular validation. It does not build. It does not fix. It only judges. If it detects that an implementation was written specifically to pass a post-hoc mock test in the same session, it must declare `CLOSE_AS_FICTION` and request changes.

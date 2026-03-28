@@ -27,6 +27,18 @@
 
 ---
 
+## Verification Receipt
+
+<!-- Required for all PRs that introduce or modify functional code or agent logic. -->
+<!-- A PR without a Verification Receipt backed by a green Actions run is incomplete. -->
+
+- Actions run: <!-- Link to a green GitHub Actions run, e.g. https://github.com/owner/repo/actions/runs/XXXXX -->
+- Artifact: <!-- Download link, or "N/A" with reason -->
+- Adversarial test: <!-- What edge case or failure scenario was tried to break the claimed functionality -->
+- Validator agent session: <!-- Link to adversarial-validator comment/run, or "N/A - not applicable" -->
+
+---
+
 ## Additional Notes
 
 <!-- Add any additional information or context for reviewers here. -->
